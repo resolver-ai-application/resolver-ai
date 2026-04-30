@@ -15,8 +15,6 @@ import java.time.Instant;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Entity
-@Table(name = "subscription")
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class Subscription {
 

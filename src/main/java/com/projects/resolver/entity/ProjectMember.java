@@ -14,8 +14,6 @@ import java.time.Instant;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Entity
-@Table(name = "project_member")
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class ProjectMember {
 

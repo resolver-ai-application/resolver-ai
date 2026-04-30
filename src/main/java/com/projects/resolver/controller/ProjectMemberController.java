@@ -3,7 +3,6 @@ package com.projects.resolver.controller;
 import com.projects.resolver.dto.Member.InviteMemberRequest;
 import com.projects.resolver.dto.Member.MemberResponse;
 import com.projects.resolver.dto.Member.UpdateMemberRoleRequest;
-import com.projects.resolver.entity.ProjectMember;
 import com.projects.resolver.service.ProjectMemberService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -33,13 +32,13 @@ public class ProjectMemberController {
         return ResponseEntity.ok(projectMemberService.inviteMember(projectId,userId,request));
     }
 
-    @PatchMapping("/{memberId")
+    @PatchMapping("/{memberId}")
     public ResponseEntity<MemberResponse> updateMemberRole(@PathVariable Long projectId, @PathVariable Long memberId, @RequestBody UpdateMemberRoleRequest request){
         Long userId =1L;
         return ResponseEntity.ok(projectMemberService.updateMemberRole(projectId,userId,memberId,request));
     }
 
-    @DeleteMapping("/{memberId")
+    @DeleteMapping("/{memberId}")
     public ResponseEntity<MemberResponse> deleteProjectMember(@PathVariable Long projectId, @PathVariable Long memberId){
         Long userId =1L;
         return ResponseEntity.ok(projectMemberService.deleteProjectMember(projectId,userId,memberId));

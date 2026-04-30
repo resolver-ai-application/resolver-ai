@@ -13,8 +13,6 @@ import java.time.Instant;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Entity
-@Table(name = "userlog")
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class UserLog {
 

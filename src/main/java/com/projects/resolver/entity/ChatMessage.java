@@ -2,6 +2,7 @@ package com.projects.resolver.entity;
 
 import com.projects.resolver.enums.MessageRole;
 import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -14,8 +15,6 @@ import java.time.Instant;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Entity
-@Table(name = "chat_message")
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class ChatMessage {
 

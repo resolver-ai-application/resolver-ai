@@ -13,8 +13,6 @@ import java.util.Map;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Entity
-@Table(name = "plan")
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class Plan {
 
