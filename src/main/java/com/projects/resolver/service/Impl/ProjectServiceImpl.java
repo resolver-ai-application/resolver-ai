@@ -5,6 +5,8 @@ import com.projects.resolver.dto.Project.ProjectResponse;
 import com.projects.resolver.dto.Project.ProjectSummaryResponse;
 import com.projects.resolver.entity.Project;
 import com.projects.resolver.entity.User;
+import com.projects.resolver.exceptions.BadRequestException;
+import com.projects.resolver.exceptions.ResourceNotFoundException;
 import com.projects.resolver.mapper.ProjectMapper;
 import com.projects.resolver.repositories.ProjectRepository;
 import com.projects.resolver.repositories.UserRepository;
@@ -36,13 +38,16 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Override
     public ProjectResponse getUserProjectById(Long projectId, Long userId) {
-        Project project = projectRepository.findAccessibleProjectById(userId, projectId).orElseThrow();
+        Project project = projectRepository.findAccessibleProjectById(userId, projectId).orElseThrow(
+                ()->new ResourceNotFoundException("Project owner not exist",projectId.toString())
+        );
         return projectMapper.toProjectResponse(project);
     }
 
     @Override
     public ProjectResponse createProject(ProjectRequest projectRequest, Long userId) {
-        User owner = userRepository.findById(userId).orElseThrow();
+        User owner = userRepository.findById(userId).orElseThrow(
+                ()->new ResourceNotFoundException("User not present",userId.toString()));
         Project project = Project.builder()
                 .name(projectRequest.name())
                 .owner(owner)
@@ -64,12 +69,14 @@ public class ProjectServiceImpl implements ProjectService {
     public void softProject(Long projectId, Long userId) {
         Project project = this.findAccessibleProjectById(userId,projectId);
         if(!project.getOwner().getId().equals(userId))
-            throw new RuntimeException("You are not allowed to delete");
+            throw new BadRequestException("You are not allowed to delete");
         project.setDeletedAt(Instant.now());
         projectRepository.save(project);
     }
 
     private Project findAccessibleProjectById(Long userId, Long projectId){
-        return projectRepository.findAccessibleProjectById(userId,projectId).orElseThrow();
+        return projectRepository.findAccessibleProjectById(userId,projectId).orElseThrow(
+                ()->new ResourceNotFoundException("Project not exist",projectId.toString())
+        );
     }
 }

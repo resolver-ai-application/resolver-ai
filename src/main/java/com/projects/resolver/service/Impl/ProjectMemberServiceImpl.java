@@ -7,6 +7,8 @@ import com.projects.resolver.entity.Project;
 import com.projects.resolver.entity.ProjectMember;
 import com.projects.resolver.entity.ProjectMemberId;
 import com.projects.resolver.entity.User;
+import com.projects.resolver.exceptions.BadRequestException;
+import com.projects.resolver.exceptions.ResourceNotFoundException;
 import com.projects.resolver.mapper.ProjectMemberMapper;
 import com.projects.resolver.repositories.ProjectMemberRepository;
 import com.projects.resolver.repositories.ProjectRepository;
@@ -46,13 +48,13 @@ public class ProjectMemberServiceImpl implements ProjectMemberService {
     public MemberResponse inviteMember(Long projectId, Long userId, InviteMemberRequest request) {
        Project project = this.findAccessibleProjectById(userId,projectId);
        if(!project.getOwner().getId().equals(userId))
-           throw new RuntimeException("Not Allowed");
+           throw new BadRequestException("Not Allowed");
        User invitee = userRepository.findByEmail(request.email()).orElseThrow();
        if(invitee.getId().equals(userId))
-           throw new RuntimeException("Cannot Invite Yourself");
+           throw new BadRequestException("Cannot Invite Yourself");
        ProjectMemberId projectMemberId = new ProjectMemberId(projectId,userId);
        if(projectMemberRepository.existsById(projectMemberId))
-           throw new RuntimeException("Cannot Invite Again");
+           throw new BadRequestException("Cannot Invite Again");
        ProjectMember member = ProjectMember.builder()
                .id(projectMemberId)
                .project(project)
@@ -68,9 +70,11 @@ public class ProjectMemberServiceImpl implements ProjectMemberService {
     public MemberResponse updateMemberRole(Long projectId, Long userId, Long memberId, UpdateMemberRoleRequest request) {
         Project project = this.findAccessibleProjectById(userId,projectId);
         if(!project.getOwner().getId().equals(userId))
-            throw new RuntimeException("Not Allowed");
+            throw new BadRequestException("Not Allowed");
         ProjectMemberId projectMemberId = new ProjectMemberId(projectId,memberId);
-        ProjectMember projectMember = projectMemberRepository.getReferenceById(projectMemberId);
+        ProjectMember projectMember = projectMemberRepository.findById(projectMemberId).orElseThrow(
+                () -> new ResourceNotFoundException("Project member dont exist",projectMemberId.toString())
+        );
         projectMember.setProjectRole(request.role());
         projectMemberRepository.save(projectMember);
         return projectMemberMapper.toMemberResponse(projectMember);
@@ -80,14 +84,16 @@ public class ProjectMemberServiceImpl implements ProjectMemberService {
     public void deleteProjectMember(Long projectId, Long userId, Long memberId) {
         Project project = this.findAccessibleProjectById(userId,projectId);
         if(!project.getOwner().getId().equals(userId))
-            throw new RuntimeException("Not Allowed");
+            throw new BadRequestException("Not Allowed");
         ProjectMemberId projectMemberId = new ProjectMemberId(projectId,memberId);
         if(!projectMemberRepository.existsById(projectMemberId))
-            throw new RuntimeException("Cannot Remove Invite of uninvited member");
+            throw new BadRequestException("Cannot Remove Invite of uninvited member");
         projectMemberRepository.deleteById(projectMemberId);
     }
 
     private Project findAccessibleProjectById(Long userId, Long projectId){
-        return projectRepository.findAccessibleProjectById(userId,projectId).orElseThrow();
+        return projectRepository.findAccessibleProjectById(userId,projectId).orElseThrow(
+                ()->new ResourceNotFoundException("Project not exist",projectId.toString())
+        );
     }
 }

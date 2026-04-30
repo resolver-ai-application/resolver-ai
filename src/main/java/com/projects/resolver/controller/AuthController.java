@@ -6,6 +6,7 @@ import com.projects.resolver.dto.Auth.SignUpRequest;
 import com.projects.resolver.dto.Auth.UserProfileResponse;
 import com.projects.resolver.service.AuthService;
 import com.projects.resolver.service.UserService;
+import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -22,12 +23,12 @@ public class AuthController {
     UserService userService;
 
     @PostMapping("/signup")
-    public ResponseEntity<AuthResponse> signup(@RequestBody SignUpRequest signUpRequest){
+    public ResponseEntity<AuthResponse> signup(@RequestBody @Valid SignUpRequest signUpRequest){
         return ResponseEntity.ok(authService.signup(signUpRequest));
     }
 
     @PostMapping("/login")
-    public ResponseEntity<AuthResponse> login(@RequestBody LoginRequest loginRequest){
+    public ResponseEntity<AuthResponse> login(@RequestBody @Valid LoginRequest loginRequest){
         return ResponseEntity.ok(authService.login(loginRequest));
     }
 

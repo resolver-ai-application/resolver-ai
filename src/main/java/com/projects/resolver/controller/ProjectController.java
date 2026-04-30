@@ -4,6 +4,7 @@ import com.projects.resolver.dto.Project.ProjectRequest;
 import com.projects.resolver.dto.Project.ProjectResponse;
 import com.projects.resolver.dto.Project.ProjectSummaryResponse;
 import com.projects.resolver.service.ProjectService;
+import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -34,13 +35,13 @@ public class ProjectController {
     }
 
     @PostMapping()
-    public ResponseEntity<ProjectResponse> createProject(@RequestBody ProjectRequest projectRequest){
+    public ResponseEntity<ProjectResponse> createProject(@RequestBody @Valid ProjectRequest projectRequest){
         Long userId = 1L;
         return  ResponseEntity.status(HttpStatus.CREATED).body(projectService.createProject(projectRequest,userId));
     }
 
     @PatchMapping("/{id}")
-    public ResponseEntity<ProjectResponse> updateProject(@PathVariable("id") Long projectId, @RequestBody ProjectRequest projectRequest){
+    public ResponseEntity<ProjectResponse> updateProject(@PathVariable("id") Long projectId, @RequestBody @Valid ProjectRequest projectRequest){
         Long userId = 1L;
         return ResponseEntity.ok(projectService.updateProject(projectId,projectRequest,userId));
     }

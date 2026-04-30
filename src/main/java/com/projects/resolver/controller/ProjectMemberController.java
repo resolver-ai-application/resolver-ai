@@ -3,7 +3,9 @@ package com.projects.resolver.controller;
 import com.projects.resolver.dto.Member.InviteMemberRequest;
 import com.projects.resolver.dto.Member.MemberResponse;
 import com.projects.resolver.dto.Member.UpdateMemberRoleRequest;
+import com.projects.resolver.exceptions.BadRequestException;
 import com.projects.resolver.service.ProjectMemberService;
+import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -27,13 +29,13 @@ public class ProjectMemberController {
     }
 
     @PostMapping
-    public ResponseEntity<MemberResponse> inviteMember(@PathVariable Long projectId, @RequestBody InviteMemberRequest request){
+    public ResponseEntity<MemberResponse> inviteMember(@PathVariable Long projectId, @RequestBody @Valid InviteMemberRequest request){
         Long userId =1L;
         return ResponseEntity.ok(projectMemberService.inviteMember(projectId,userId,request));
     }
 
     @PatchMapping("/{memberId}")
-    public ResponseEntity<MemberResponse> updateMemberRole(@PathVariable Long projectId, @PathVariable Long memberId, @RequestBody UpdateMemberRoleRequest request){
+    public ResponseEntity<MemberResponse> updateMemberRole(@PathVariable Long projectId, @PathVariable Long memberId, @RequestBody @Valid UpdateMemberRoleRequest request){
         Long userId =1L;
         return ResponseEntity.ok(projectMemberService.updateMemberRole(projectId,userId,memberId,request));
     }
