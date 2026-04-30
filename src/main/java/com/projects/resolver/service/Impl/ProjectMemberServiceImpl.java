@@ -19,9 +19,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.stereotype.Service;
 
-import javax.management.RuntimeErrorException;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -36,23 +34,19 @@ public class ProjectMemberServiceImpl implements ProjectMemberService {
 
     @Override
     public List<MemberResponse> getProjectMembers(Long userId, Long projectId) {
-        Project project = findAccessibleProjectById(userId, projectId);
-        List<MemberResponse> memberResponseList = new ArrayList<>();
-        memberResponseList.add(projectMemberMapper.toMemberResponse(project.getOwner()));
-        List<ProjectMember> memberList = projectMemberRepository.findByIdProjectId(projectId);
-        memberResponseList.addAll(projectMemberMapper.toMemberResponseList(memberList));
-        return memberResponseList;
+        return projectMemberRepository.findByIdProjectId(projectId)
+                .stream()
+                .map(projectMemberMapper::toMemberResponse)
+                .toList();
     }
 
     @Override
     public MemberResponse inviteMember(Long projectId, Long userId, InviteMemberRequest request) {
        Project project = this.findAccessibleProjectById(userId,projectId);
-       if(!project.getOwner().getId().equals(userId))
-           throw new BadRequestException("Not Allowed");
-       User invitee = userRepository.findByEmail(request.email()).orElseThrow();
+       User invitee = userRepository.findByUsername(request.username()).orElseThrow();
        if(invitee.getId().equals(userId))
            throw new BadRequestException("Cannot Invite Yourself");
-       ProjectMemberId projectMemberId = new ProjectMemberId(projectId,userId);
+       ProjectMemberId projectMemberId = new ProjectMemberId(projectId,invitee.getId());
        if(projectMemberRepository.existsById(projectMemberId))
            throw new BadRequestException("Cannot Invite Again");
        ProjectMember member = ProjectMember.builder()
@@ -68,9 +62,6 @@ public class ProjectMemberServiceImpl implements ProjectMemberService {
 
     @Override
     public MemberResponse updateMemberRole(Long projectId, Long userId, Long memberId, UpdateMemberRoleRequest request) {
-        Project project = this.findAccessibleProjectById(userId,projectId);
-        if(!project.getOwner().getId().equals(userId))
-            throw new BadRequestException("Not Allowed");
         ProjectMemberId projectMemberId = new ProjectMemberId(projectId,memberId);
         ProjectMember projectMember = projectMemberRepository.findById(projectMemberId).orElseThrow(
                 () -> new ResourceNotFoundException("Project member dont exist",projectMemberId.toString())
@@ -82,9 +73,6 @@ public class ProjectMemberServiceImpl implements ProjectMemberService {
 
     @Override
     public void deleteProjectMember(Long projectId, Long userId, Long memberId) {
-        Project project = this.findAccessibleProjectById(userId,projectId);
-        if(!project.getOwner().getId().equals(userId))
-            throw new BadRequestException("Not Allowed");
         ProjectMemberId projectMemberId = new ProjectMemberId(projectId,memberId);
         if(!projectMemberRepository.existsById(projectMemberId))
             throw new BadRequestException("Cannot Remove Invite of uninvited member");
