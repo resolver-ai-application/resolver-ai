@@ -2,7 +2,7 @@ Project title : Resolver.AI
 
 Description : AI Project which will provide code to build other projects.
 
-Tech Stack Implemented : JAVA, SpringBoot, SpringAI, Spring Data JPA
+Tech Stack Implemented : JAVA, SpringBoot, SpringAI, Spring Data JPA, Spring Validation
 DataBase : PostgresSQL
 
 Tool : IntelliJ, DBeaver, Postman
