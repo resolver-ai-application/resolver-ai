@@ -3,6 +3,7 @@ package com.projects.resolver.controller;
 import com.projects.resolver.dto.Project.ProjectRequest;
 import com.projects.resolver.dto.Project.ProjectResponse;
 import com.projects.resolver.dto.Project.ProjectSummaryResponse;
+import com.projects.resolver.security.AuthUtil;
 import com.projects.resolver.service.ProjectService;
 import jakarta.validation.Valid;
 import lombok.AccessLevel;
@@ -24,32 +25,27 @@ public class ProjectController {
 
     @GetMapping()
     public ResponseEntity<List<ProjectSummaryResponse>> getMyProjects(){
-        Long userId = 1L;
-        return ResponseEntity.ok(projectService.getUserProjects(userId));
+        return ResponseEntity.ok(projectService.getUserProjects());
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<ProjectResponse> getMyProjectById(@PathVariable("id") Long projectId){
-        Long userId = 1L;
-        return ResponseEntity.ok(projectService.getUserProjectById(projectId,userId));
+        return ResponseEntity.ok(projectService.getUserProjectById(projectId));
     }
 
     @PostMapping()
     public ResponseEntity<ProjectResponse> createProject(@RequestBody @Valid ProjectRequest projectRequest){
-        Long userId = 1L;
-        return  ResponseEntity.status(HttpStatus.CREATED).body(projectService.createProject(projectRequest,userId));
+        return  ResponseEntity.status(HttpStatus.CREATED).body(projectService.createProject(projectRequest));
     }
 
     @PatchMapping("/{id}")
     public ResponseEntity<ProjectResponse> updateProject(@PathVariable("id") Long projectId, @RequestBody @Valid ProjectRequest projectRequest){
-        Long userId = 1L;
-        return ResponseEntity.ok(projectService.updateProject(projectId,projectRequest,userId));
+        return ResponseEntity.ok(projectService.updateProject(projectId,projectRequest));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<ProjectResponse> deleteProject(@PathVariable("id") Long projectId){
-        Long userId = 1L;
-        projectService.softProject(projectId, userId);
+        projectService.softProject(projectId);
         return ResponseEntity.noContent().build();
     }
 }

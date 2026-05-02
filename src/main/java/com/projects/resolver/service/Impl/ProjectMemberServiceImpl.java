@@ -13,6 +13,7 @@ import com.projects.resolver.mapper.ProjectMemberMapper;
 import com.projects.resolver.repositories.ProjectMemberRepository;
 import com.projects.resolver.repositories.ProjectRepository;
 import com.projects.resolver.repositories.UserRepository;
+import com.projects.resolver.security.AuthUtil;
 import com.projects.resolver.service.ProjectMemberService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -31,9 +32,10 @@ public class ProjectMemberServiceImpl implements ProjectMemberService {
     ProjectRepository projectRepository;
     ProjectMemberMapper projectMemberMapper;
     UserRepository userRepository;
+    AuthUtil authUtil;
 
     @Override
-    public List<MemberResponse> getProjectMembers(Long userId, Long projectId) {
+    public List<MemberResponse> getProjectMembers(Long projectId) {
         return projectMemberRepository.findByIdProjectId(projectId)
                 .stream()
                 .map(projectMemberMapper::toMemberResponse)
@@ -41,7 +43,8 @@ public class ProjectMemberServiceImpl implements ProjectMemberService {
     }
 
     @Override
-    public MemberResponse inviteMember(Long projectId, Long userId, InviteMemberRequest request) {
+    public MemberResponse inviteMember(Long projectId, InviteMemberRequest request) {
+        Long userId = authUtil.getCurrentUserId();
        Project project = this.findAccessibleProjectById(userId,projectId);
        User invitee = userRepository.findByUsername(request.username()).orElseThrow();
        if(invitee.getId().equals(userId))
@@ -61,7 +64,7 @@ public class ProjectMemberServiceImpl implements ProjectMemberService {
     }
 
     @Override
-    public MemberResponse updateMemberRole(Long projectId, Long userId, Long memberId, UpdateMemberRoleRequest request) {
+    public MemberResponse updateMemberRole(Long projectId, Long memberId, UpdateMemberRoleRequest request) {
         ProjectMemberId projectMemberId = new ProjectMemberId(projectId,memberId);
         ProjectMember projectMember = projectMemberRepository.findById(projectMemberId).orElseThrow(
                 () -> new ResourceNotFoundException("Project member dont exist",projectMemberId.toString())
@@ -72,7 +75,7 @@ public class ProjectMemberServiceImpl implements ProjectMemberService {
     }
 
     @Override
-    public void deleteProjectMember(Long projectId, Long userId, Long memberId) {
+    public void deleteProjectMember(Long projectId, Long memberId) {
         ProjectMemberId projectMemberId = new ProjectMemberId(projectId,memberId);
         if(!projectMemberRepository.existsById(projectMemberId))
             throw new BadRequestException("Cannot Remove Invite of uninvited member");

@@ -8,12 +8,12 @@ import com.projects.resolver.entity.ProjectMember;
 import com.projects.resolver.entity.ProjectMemberId;
 import com.projects.resolver.entity.User;
 import com.projects.resolver.enums.ProjectRole;
-import com.projects.resolver.exceptions.BadRequestException;
 import com.projects.resolver.exceptions.ResourceNotFoundException;
 import com.projects.resolver.mapper.ProjectMapper;
 import com.projects.resolver.repositories.ProjectMemberRepository;
 import com.projects.resolver.repositories.ProjectRepository;
 import com.projects.resolver.repositories.UserRepository;
+import com.projects.resolver.security.AuthUtil;
 import com.projects.resolver.service.ProjectService;
 import jakarta.transaction.Transactional;
 import lombok.AccessLevel;
@@ -34,15 +34,18 @@ public class ProjectServiceImpl implements ProjectService {
     UserRepository userRepository;
     ProjectMapper projectMapper;
     ProjectMemberRepository projectMemberRepository;
+    AuthUtil authUtil;
 
     @Override
-    public List<ProjectSummaryResponse> getUserProjects(Long userId) {
+    public List<ProjectSummaryResponse> getUserProjects() {
+        Long userId = authUtil.getCurrentUserId();
         List<Project> projectList = projectRepository.findAllAccesibleByUser(userId);
         return projectMapper.toProjectSummaryResponses(projectList);
     }
 
     @Override
-    public ProjectResponse getUserProjectById(Long projectId, Long userId) {
+    public ProjectResponse getUserProjectById(Long projectId) {
+        Long userId = authUtil.getCurrentUserId();
         Project project = projectRepository.findAccessibleProjectById(userId, projectId).orElseThrow(
                 ()->new ResourceNotFoundException("Project owner not exist",projectId.toString())
         );
@@ -50,7 +53,8 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
     @Override
-    public ProjectResponse createProject(ProjectRequest projectRequest, Long userId) {
+    public ProjectResponse createProject(ProjectRequest projectRequest) {
+        Long userId = authUtil.getCurrentUserId();
         User owner = userRepository.findById(userId).orElseThrow(
                 ()->new ResourceNotFoundException("User not present",userId.toString()));
         Project project = Project.builder()
@@ -74,7 +78,8 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
     @Override
-    public ProjectResponse updateProject(Long projectId, ProjectRequest projectRequest, Long userId) {
+    public ProjectResponse updateProject(Long projectId, ProjectRequest projectRequest) {
+        Long userId = authUtil.getCurrentUserId();
         Project project = this.findAccessibleProjectById(userId,projectId);
         project.setName(projectRequest.name());
         project = projectRepository.save(project);
@@ -82,7 +87,8 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
     @Override
-    public void softProject(Long projectId, Long userId) {
+    public void softProject(Long projectId) {
+        Long userId = authUtil.getCurrentUserId();
         Project project = this.findAccessibleProjectById(userId,projectId);
         project.setDeletedAt(Instant.now());
         projectRepository.save(project);

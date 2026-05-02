@@ -3,18 +3,17 @@ package com.projects.resolver.service;
 import com.projects.resolver.dto.Project.ProjectRequest;
 import com.projects.resolver.dto.Project.ProjectResponse;
 import com.projects.resolver.dto.Project.ProjectSummaryResponse;
-import org.jspecify.annotations.Nullable;
 
 import java.util.List;
 
 public interface ProjectService {
-    List<ProjectSummaryResponse> getUserProjects(Long userId);
+    List<ProjectSummaryResponse> getUserProjects();
 
-    ProjectResponse getUserProjectById(Long projectId, Long userId);
+    ProjectResponse getUserProjectById(Long projectId);
 
-    ProjectResponse createProject(ProjectRequest projectRequest, Long userId);
+    ProjectResponse createProject(ProjectRequest projectRequest);
 
-    ProjectResponse updateProject(Long projectId, ProjectRequest projectRequest, Long userId);
+    ProjectResponse updateProject(Long projectId, ProjectRequest projectRequest);
 
-    void softProject(Long projectId, Long userId);
+    void softProject(Long projectId);
 }
