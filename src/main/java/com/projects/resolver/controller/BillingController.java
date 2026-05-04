@@ -24,14 +24,13 @@ import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
-@FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
 public class BillingController {
 
-    PlanService planService;
-    SubscriptionService subscriptionService;
-    PaymentProcessor paymentProcessor;
+    private final PlanService planService;
+    private final SubscriptionService subscriptionService;
+    private final PaymentProcessor paymentProcessor;
 
-    @Value("${stripe.webhook.secretkey}")
+    @Value("${stripe.webhook.secret}")
     private String webhookSecret;
 
     @GetMapping("/api/plans")
@@ -55,7 +54,7 @@ public class BillingController {
         return  ResponseEntity.ok(paymentProcessor.openCustoemrPortal());
     }
 
-    @PostMapping("/webhooks/payments")
+    @PostMapping("/webhooks/payment")
     public ResponseEntity<String> handlePaymentWebhook
             (@RequestBody String payload,
              @RequestHeader("Stripe-Signature") String signature
@@ -86,7 +85,4 @@ public class BillingController {
         }
 
     }
-
-
-
 }
