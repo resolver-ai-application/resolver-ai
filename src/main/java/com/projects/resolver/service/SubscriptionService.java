@@ -7,9 +7,7 @@ import com.projects.resolver.dto.Subscription.SubscriptionResponse;
 import org.jspecify.annotations.Nullable;
 
 public interface SubscriptionService {
+
     SubscriptionResponse getCurrentSubscription(Long userId);
 
-    CheckoutResponse createCheckoutSessionUrl(CheckoutRequest checkoutRequest, Long userId);
-
-    PortalResponse openCustoemrPortal(Long userId);
 }

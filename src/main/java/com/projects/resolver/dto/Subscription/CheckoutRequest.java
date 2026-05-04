@@ -1,4 +1,4 @@
 package com.projects.resolver.dto.Subscription;
 
-public record CheckoutRequest(String planId) {
+public record CheckoutRequest(Long planId) {
 }

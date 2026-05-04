@@ -21,7 +21,6 @@ public class Subscription {
     Long id;
     User user;
     Plan plan;
-    String stripeCustomerId;
     String stripeSubscriptionId;
     Instant currentPeriodStart;
     Boolean cancelAtPeriodEnd = false;
