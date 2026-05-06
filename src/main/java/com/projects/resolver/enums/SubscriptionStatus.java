@@ -3,7 +3,7 @@ package com.projects.resolver.enums;
 public enum SubscriptionStatus {
     ACTIVE,
     TRAILING,
-    CANCELED,
+    CANCELLED,
     PAST_DUE,
     INCOMPLETE
 }
