@@ -13,6 +13,11 @@ import lombok.experimental.FieldDefaults;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+/**
+ *
+ * Controller For Login/Signup
+ *
+ */
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/auth")

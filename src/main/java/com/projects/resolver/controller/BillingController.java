@@ -50,7 +50,7 @@ public class BillingController {
 
     @PostMapping("/api/payments/portal")
     public ResponseEntity<PortalResponse> openCustomerPortal(){
-        return  ResponseEntity.ok(paymentProcessor.openCustoemrPortal());
+        return  ResponseEntity.ok(paymentProcessor.openCustomerPortal());
     }
 
     @PostMapping("/webhooks/payment")
