@@ -30,6 +30,11 @@ public class AuthServiceImpl implements AuthService {
     AuthenticationManager authenticationManager;
 
 
+    /**
+     * Sign up User
+     * @param signUpRequest
+     * @return
+     */
     @Override
     public AuthResponse signup(SignUpRequest signUpRequest) {
         userRepository.findByUsername(signUpRequest.username()).ifPresent(user -> {
@@ -41,6 +46,11 @@ public class AuthServiceImpl implements AuthService {
         return new AuthResponse(authUtil.generateAccessToken(user),userMapper.toUserProfileResponse(user));
     }
 
+    /**
+     * User Login with username and password
+     * @param loginRequest
+     * @return
+     */
     @Override
     public AuthResponse login(LoginRequest loginRequest) {
         Authentication authentication = authenticationManager.authenticate(
