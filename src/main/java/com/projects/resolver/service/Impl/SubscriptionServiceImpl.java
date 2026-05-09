@@ -18,11 +18,13 @@ import com.projects.resolver.service.SubscriptionService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.util.Set;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
@@ -35,6 +37,10 @@ public class SubscriptionServiceImpl implements SubscriptionService {
     PlanRepository planRepository;
 
 
+    /**
+     * Fetch information about current subscription
+     * @return
+     */
     @Override
     public SubscriptionResponse getCurrentSubscription() {
         Long userId = authUtil.getCurrentUserId();
@@ -45,6 +51,13 @@ public class SubscriptionServiceImpl implements SubscriptionService {
         return subscriptionMapper.toSubscriptionResponse(currentSubscription);
     }
 
+    /**
+     * To activate a subscription[Fresh]
+     * @param userId
+     * @param planId
+     * @param subscriptionId
+     * @param customerId
+     */
     @Override
     public void activateSubscription(Long userId, Long planId, String subscriptionId, String customerId) {
         boolean exists = subscriptionRepository.existsByStripeSubscriptionId(subscriptionId);
@@ -61,16 +74,38 @@ public class SubscriptionServiceImpl implements SubscriptionService {
         subscriptionRepository.save(subscription);
     }
 
+    /**
+     * Update Subscription Plan from P1 to P2
+     * @param subscriptionId
+     * @param status
+     * @param periodStart
+     * @param periodEnd
+     * @param cancelAtPeriodEnd
+     * @param planId
+     */
     @Override
     public void updateSubscription(String subscriptionId, SubscriptionStatus status, Instant periodStart, Instant periodEnd, Boolean cancelAtPeriodEnd, Long planId) {
 
     }
 
+    /**
+     * To cancel Subscription
+     * @param subscriptionId
+     */
     @Override
     public void cancelSubscription(String subscriptionId) {
-
+        Subscription subscription = getSubscription(subscriptionId);
+        subscription.setStatus(SubscriptionStatus.CANCELLED);
+        subscriptionRepository.save(subscription);
+        //notify to user, email, ...
     }
 
+    /**
+     * To renew Subscription of active subscription
+     * @param subscriptionId
+     * @param periodStart
+     * @param periodEnd
+     */
     @Override
     public void renewSubscriptionPeriod(String subscriptionId, Instant periodStart, Instant periodEnd) {
         Subscription subscription = getSubscription(subscriptionId);
@@ -83,10 +118,23 @@ public class SubscriptionServiceImpl implements SubscriptionService {
         subscriptionRepository.save(subscription);
     }
 
+    /**
+     * Subscription Marked as Past Due once subscripiton duration overed
+     * @param subscriptionId
+     */
     @Override
     public void markSubscriptionPastDue(String subscriptionId) {
-
+        Subscription subscription = getSubscription(subscriptionId);
+        if(subscription.getStatus()==SubscriptionStatus.PAST_DUE){
+            log.info("Subscription is already due for subscriptionId: {}",subscriptionId);
+            return;
+        }
+        subscription.setStatus(SubscriptionStatus.PAST_DUE);
+        subscriptionRepository.save(subscription);
+        //notify to user, email, ...
     }
+
+
 
     ///// Utility
     private Plan getPlan(Long planId) {
