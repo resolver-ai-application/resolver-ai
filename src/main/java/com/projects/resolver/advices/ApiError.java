@@ -6,6 +6,13 @@ import org.springframework.http.HttpStatus;
 import java.time.Instant;
 import java.util.List;
 
+/**
+ *  Represents a standardized API error response returned by the application.
+ * @param status
+ * @param message
+ * @param timestamp
+ * @param errors
+ */
 public record ApiError(
         HttpStatus status,
         String message,
@@ -20,4 +27,9 @@ public record ApiError(
     }
 }
 
+/**
+ * Represents a field-specific validation error in an API request.
+ * @param field
+ * @param message
+ */
 record ApiFieldError(String field, String message){}

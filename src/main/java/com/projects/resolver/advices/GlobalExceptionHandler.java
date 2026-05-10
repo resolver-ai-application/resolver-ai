@@ -15,6 +15,14 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import java.nio.file.AccessDeniedException;
 import java.util.List;
 
+/**
+ *
+ * Global exception handler for the application.
+ * This class centralizes exception handling across all REST controllers using @RestControllerAdvice
+ *
+ * All exceptions are logged before sending the response to ensure
+ * better debugging and monitoring support.
+ */
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
