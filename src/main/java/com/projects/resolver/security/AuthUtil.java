@@ -4,8 +4,6 @@ import com.projects.resolver.entity.User;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
-import lombok.AccessLevel;
-import lombok.experimental.FieldDefaults;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.security.core.Authentication;
@@ -14,12 +12,20 @@ import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 import java.util.Objects;
 
+
+/**
+ *
+ *  Utility class responsible for:
+Generating JWT access tokens
+Validating and parsing JWT tokens
+Extracting authenticated user details from SecurityContext
+ *
+ *  This class acts as a central helper for JWT-based authentication operations.
+ */
 @Component
 public class AuthUtil {
 
@@ -31,6 +37,7 @@ public class AuthUtil {
         return Keys.hmacShaKeyFor(jwtSecretKey.getBytes(StandardCharsets.UTF_8));
     }
 
+    //Generates a JWT access token for the authenticated user.
     public String generateAccessToken(User user){
         return Jwts.builder()
                 .subject(user.getUsername())
@@ -42,6 +49,7 @@ public class AuthUtil {
                 .compact();
     }
 
+    //Validates and parses the provided JWT access token.
     public JwtUserPrincipal verifyAccessToken(String token){
         Claims claims = Jwts.parser().verifyWith(getSecretKey()).build().parseSignedClaims(token).getPayload();
         Long userId = Long.parseLong(claims.get("userId", String.class));
@@ -50,6 +58,7 @@ public class AuthUtil {
         return new JwtUserPrincipal(userId,username, new ArrayList<>());
     }
 
+    //Retrieves the currently authenticated user's ID
     public Long getCurrentUserId(){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if(Objects.isNull(authentication) || !(authentication.getPrincipal() instanceof JwtUserPrincipal)){
