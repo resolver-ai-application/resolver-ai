@@ -49,6 +49,7 @@ public class AuthUtil {
                 .compact();
     }
 
+
     //Validates and parses the provided JWT access token.
     public JwtUserPrincipal verifyAccessToken(String token){
         Claims claims = Jwts.parser().verifyWith(getSecretKey()).build().parseSignedClaims(token).getPayload();
