@@ -9,7 +9,15 @@ import org.springframework.stereotype.Component;
 
 import static com.projects.resolver.enums.ProjectPermission.*;
 
-
+/**
+ *
+ * This component is exposed as a Spring bean with the name {@code security}
+ * and is mainly used inside {@code @PreAuthorize} / {@code @PostAuthorize}
+ * expressions to validate whether the currently authenticated user has
+ * the required permission on a specific project.
+ *
+ *
+ */
 @Component("security")
 @RequiredArgsConstructor
 @FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
