@@ -8,6 +8,7 @@ import com.projects.resolver.entity.ProjectMember;
 import com.projects.resolver.entity.ProjectMemberId;
 import com.projects.resolver.entity.User;
 import com.projects.resolver.enums.ProjectRole;
+import com.projects.resolver.exceptions.BadRequestException;
 import com.projects.resolver.exceptions.ResourceNotFoundException;
 import com.projects.resolver.mapper.ProjectMapper;
 import com.projects.resolver.repositories.ProjectMemberRepository;
@@ -15,6 +16,7 @@ import com.projects.resolver.repositories.ProjectRepository;
 import com.projects.resolver.repositories.UserRepository;
 import com.projects.resolver.security.AuthUtil;
 import com.projects.resolver.service.ProjectService;
+import com.projects.resolver.service.SubscriptionService;
 import jakarta.transaction.Transactional;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -36,6 +38,7 @@ public class ProjectServiceImpl implements ProjectService {
     ProjectMapper projectMapper;
     ProjectMemberRepository projectMemberRepository;
     AuthUtil authUtil;
+    SubscriptionService subscriptionService;
 
     @Override
     public List<ProjectSummaryResponse> getUserProjects() {
@@ -57,6 +60,9 @@ public class ProjectServiceImpl implements ProjectService {
     @Override
     public ProjectResponse createProject(ProjectRequest projectRequest) {
         Long userId = authUtil.getCurrentUserId();
+        if(!subscriptionService.canCreateNewProject()){
+            throw new BadRequestException("User cannot create a new Project with current Plan, Upgrade Plan Now");
+        }
         User owner = userRepository.findById(userId).orElseThrow(
                 ()->new ResourceNotFoundException("User not present",userId.toString()));
         Project project = Project.builder()

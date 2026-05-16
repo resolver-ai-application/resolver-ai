@@ -6,6 +6,7 @@ import com.projects.resolver.dto.Subscription.PortalResponse;
 import com.projects.resolver.entity.Plan;
 import com.projects.resolver.entity.User;
 import com.projects.resolver.enums.SubscriptionStatus;
+import com.projects.resolver.exceptions.BadRequestException;
 import com.projects.resolver.exceptions.ResourceNotFoundException;
 import com.projects.resolver.repositories.PlanRepository;
 import com.projects.resolver.repositories.UserRepository;
@@ -47,46 +48,70 @@ public class StripePaymentProcessor implements PaymentProcessor {
      */
     @Override
     public CheckoutResponse createCheckoutSessionUrl(CheckoutRequest checkoutRequest) {
-        Plan plan = planRepository.findById(checkoutRequest.planId()).orElseThrow(
-                ()-> new ResourceNotFoundException("Plan",checkoutRequest.planId().toString())
-        );
+        Plan plan =
+                planRepository
+                        .findById(checkoutRequest.planId())
+                        .orElseThrow(
+                                () ->
+                                        new ResourceNotFoundException(
+                                                "plan not found", checkoutRequest.planId().toString()));
         Long userId = authUtil.getCurrentUserId();
-        User user = userRepository.findById(userId).orElseThrow(
-                ()->new ResourceNotFoundException("User",userId.toString())
-        );
-        SessionCreateParams.Builder builder = SessionCreateParams.builder()
-                .addLineItem(SessionCreateParams.LineItem.builder()
-                        .setPrice(plan.getStripePriceId()).setQuantity(1L).build())
-                .setMode(SessionCreateParams.Mode.SUBSCRIPTION)
-                .setSubscriptionData(
-                        SessionCreateParams.SubscriptionData.builder()
-                                .setBillingMode(SessionCreateParams.SubscriptionData.BillingMode.builder()
-                                        .setType(SessionCreateParams.SubscriptionData.BillingMode.Type.FLEXIBLE)
+        User user = getUser(userId);
+
+        SessionCreateParams.Builder builder =
+                SessionCreateParams.builder()
+                        .addLineItem(
+                                SessionCreateParams.LineItem.builder()
+                                        .setPrice(plan.getStripePriceId())
+                                        .setQuantity(1L)
                                         .build())
-                                .build()
-                )
-                .setSuccessUrl(frontendUrl + "/success.html?session_id={CHECKOUT_SESSION_ID}")
-                .setCancelUrl(frontendUrl + "/cancel.html")
-                .putMetadata("user_id",userId.toString())
-                .putMetadata("plan_id",plan.getId().toString());
+                        .setMode(SessionCreateParams.Mode.SUBSCRIPTION)
+                        .setSubscriptionData(
+                                SessionCreateParams.SubscriptionData.builder()
+                                        .setBillingMode(
+                                                SessionCreateParams.SubscriptionData.BillingMode.builder()
+                                                        .setType(SessionCreateParams.SubscriptionData.BillingMode.Type.FLEXIBLE)
+                                                        .build())
+                                        .build())
+                        .setSuccessUrl(frontendUrl + "/success.html?session_id={CHECKOUT_SESSION_ID}")
+                        .setCancelUrl(frontendUrl + "/cancel.html")
+                        .putMetadata("user_id", userId.toString())
+                        .putMetadata("plan_id", plan.getId().toString());
+
         try {
-            String stripeId = user.getStripeCustomerId();
-            if(Objects.isNull(stripeId) || Strings.isBlank(stripeId)){
+            String stripeCustomerId = user.getStripeCustomerId();
+            if (Objects.isNull(stripeCustomerId) || stripeCustomerId.isEmpty())
                 builder.setCustomerEmail(user.getUsername());
-            } else {
-                builder.setCustomer(stripeId);
-            }
+            else builder.setCustomer(stripeCustomerId);
             SessionCreateParams params = builder.build();
-            Session session = Session.create(params);
+            Session session = Session.create(params);//stripe backend
             return new CheckoutResponse(session.getUrl());
-        } catch (StripeException e) {
-            throw new RuntimeException(e);
+        } catch (StripeException ex) {
+            throw new RuntimeException(ex);
         }
     }
 
     @Override
     public PortalResponse openCustomerPortal() {
-        return null;
+        Long userId = authUtil.getCurrentUserId();
+        User user = getUser(userId);
+        String stripeCustomerId = user.getStripeCustomerId();
+
+        if(stripeCustomerId==null || stripeCustomerId.isEmpty()){
+            throw new BadRequestException("User does not have a stripe customer id, userId:" + userId);
+        }
+
+        try {
+            var portalSession = com.stripe.model.billingportal.Session.create(
+                    com.stripe.param.billingportal.SessionCreateParams.builder()
+                            .setCustomer(stripeCustomerId)
+                            .setReturnUrl(frontendUrl)
+                            .build()
+            );
+            return new PortalResponse(portalSession.getUrl());
+        } catch (StripeException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
