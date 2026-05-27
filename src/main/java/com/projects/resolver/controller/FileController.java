@@ -2,7 +2,7 @@ package com.projects.resolver.controller;
 
 import com.projects.resolver.dto.Project.FileContentResponse;
 import com.projects.resolver.dto.Project.FileNode;
-import com.projects.resolver.service.FileService;
+import com.projects.resolver.service.ProjectFileService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -20,7 +20,7 @@ import java.util.List;
 @FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
 public class FileController {
 
-    FileService fileService;
+    ProjectFileService fileService;
 
     @GetMapping
     public ResponseEntity<List<FileNode>> getFileTree(@PathVariable Long projectId){

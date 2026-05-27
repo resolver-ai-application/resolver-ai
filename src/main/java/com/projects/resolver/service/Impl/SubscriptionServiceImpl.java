@@ -38,7 +38,7 @@ public class SubscriptionServiceImpl implements SubscriptionService {
     UserRepository userRepository;
     PlanRepository planRepository;
     ProjectMemberRepository projectMemberRepository;
-    Integer FREE_TIER_PROJECTS_ALLOWED=1;
+    Integer FREE_TIER_PROJECTS_ALLOWED=100;
 
 
     /**
