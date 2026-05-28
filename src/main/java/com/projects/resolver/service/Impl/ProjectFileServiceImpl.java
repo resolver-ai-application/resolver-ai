@@ -37,7 +37,7 @@ public class ProjectFileServiceImpl implements ProjectFileService {
     private String projectBucket;
 
     @Override
-    public List<FileNode> getFileTree(Long projectId, Long userId) {
+    public List<FileNode> getFileTree(Long projectId) {
         List<ProjectFile> projectFileList = projectFileRepository.findByProjectId(projectId);
         return projectFileMapper.toListOfFileNode(projectFileList);
     }
@@ -91,7 +91,6 @@ public class ProjectFileServiceImpl implements ProjectFileService {
         if(path.endsWith(".js") || path.endsWith(".jsx") || path.endsWith(".ts") || path.endsWith(".tsx")) return "text/javascript";
         if(path.endsWith(".json")) return "application/josn";
         if(path.endsWith(".css")) return "text/css";
-
         return "text/plain";
     }
 }
