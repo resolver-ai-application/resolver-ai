@@ -16,6 +16,7 @@ import com.projects.resolver.repositories.ProjectRepository;
 import com.projects.resolver.repositories.UserRepository;
 import com.projects.resolver.security.AuthUtil;
 import com.projects.resolver.service.ProjectService;
+import com.projects.resolver.service.ProjectTemplateService;
 import com.projects.resolver.service.SubscriptionService;
 import jakarta.transaction.Transactional;
 import lombok.AccessLevel;
@@ -39,6 +40,7 @@ public class ProjectServiceImpl implements ProjectService {
     ProjectMemberRepository projectMemberRepository;
     AuthUtil authUtil;
     SubscriptionService subscriptionService;
+    ProjectTemplateService projectTemplateService;
 
     @Override
     public List<ProjectSummaryResponse> getUserProjects() {
@@ -82,6 +84,7 @@ public class ProjectServiceImpl implements ProjectService {
                 .project(project)
                 .build();
         projectMemberRepository.save(projectMember);
+        projectTemplateService.initializeProjectFromTemplate(project.getId());
         return projectMapper.toProjectResponse(project);
     }
 

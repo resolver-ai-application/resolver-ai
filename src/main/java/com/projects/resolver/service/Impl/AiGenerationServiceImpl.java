@@ -2,6 +2,7 @@ package com.projects.resolver.service.Impl;
 
 import com.projects.resolver.llm.PromptUtils;
 import com.projects.resolver.llm.advisors.FileTreeContextAdvisor;
+import com.projects.resolver.llm.tools.CodeGenerationTools;
 import com.projects.resolver.security.AuthUtil;
 import com.projects.resolver.service.AiGenerationService;
 import com.projects.resolver.service.ProjectFileService;
@@ -28,7 +29,7 @@ public class AiGenerationServiceImpl implements AiGenerationService {
     private final ProjectFileService projectFileService;
     private final FileTreeContextAdvisor fileTreeContextAdvisor;
 
-    private static final Pattern FILE_TAG_PATTERN = Pattern.compile("<file path=\"([^\"]+)\">f(.*?)</file>",Pattern.DOTALL);
+    private static final Pattern FILE_TAG_PATTERN = Pattern.compile("<file path=\"([^\"]+)\">(.*?)</file>",Pattern.DOTALL);
 
     @Override
     @PreAuthorize("@security.canEditProject(#projectId)")
@@ -41,12 +42,15 @@ public class AiGenerationServiceImpl implements AiGenerationService {
                 "projectId",projectId
         );
         StringBuilder fullResponseBuffer = new StringBuilder();
+
+        CodeGenerationTools codeGenerationTools = new CodeGenerationTools(projectFileService, projectId);
         return chatClient.prompt()
                 .system(PromptUtils.CODE_GENERATION_SYSTEM_PROMPT)
                 .user(userMessage)
+                .tools(codeGenerationTools)
                 .advisors(
                 // advisors: Before entering LLM, advisors will run, for validation, sending extra params
-                // advisors are for modying prompt and giving it to llm
+                // advisors are for modifying prompt and giving it to llm
                 advisorSpec -> {
                     advisorSpec.params(advisorParams);
                     advisorSpec.advisors(fileTreeContextAdvisor);

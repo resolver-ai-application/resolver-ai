@@ -30,7 +30,6 @@ public class FileController {
     @GetMapping("/{*path}") // /src/hooks/AppHook.jsx
     public ResponseEntity<FileContentResponse> getFile(
             @PathVariable Long projectId, @PathVariable String path){
-        Long userId = 1L;
-        return ResponseEntity.ok(fileService.getFileContent(projectId, path, userId));
+        return ResponseEntity.ok(fileService.getFileContent(projectId, path));
     }
 }

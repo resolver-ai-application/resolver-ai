@@ -13,3 +13,7 @@ Spring Security (JWT Authentication + Method Security Authorization with Roles &
 DataBase : PostgresSQL
 
 Tool : IntelliJ, DBeaver, Postman
+
+
+ docker compose -f services.docker-compose.yml down
+ docker compose -f services.docker-compose.yml up -d
