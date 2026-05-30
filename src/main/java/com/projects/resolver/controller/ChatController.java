@@ -2,6 +2,7 @@ package com.projects.resolver.controller;
 
 import com.projects.resolver.dto.chat.ChatRequest;
 import com.projects.resolver.dto.chat.ChatResponse;
+import com.projects.resolver.dto.chat.StreamResponse;
 import com.projects.resolver.service.AiGenerationService;
 import com.projects.resolver.service.ChatService;
 import lombok.AccessLevel;
@@ -23,16 +24,18 @@ public class ChatController {
     AiGenerationService aiGenerationService;
     ChatService chatService;
 
-    @PostMapping(value = "/api/chat/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public Flux<ServerSentEvent<String>> streamChat(
+//    @PostMapping(value = "/api/chat/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    @PostMapping(value = "/api/v1/intelligence/chat/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public Flux<ServerSentEvent<StreamResponse>> streamChat(
         @RequestBody ChatRequest request){
         return aiGenerationService.streamResponse(request.message(), request.projectId())
-                .map(data-> ServerSentEvent.<String>builder()
+                .map(data-> ServerSentEvent.<StreamResponse>builder()
                         .data(data)
                         .build());
     }
 
-    @GetMapping("/projects/{projectId}")
+//    @GetMapping("/projects/{projectId}")
+    @GetMapping("/api/v1/intelligence/chat/projects/{projectId}")
     public ResponseEntity<List<ChatResponse>> getChatHistory(@PathVariable Long projectId){
         return ResponseEntity.ok(chatService.getProjectChatHistory(projectId));
     }

@@ -17,7 +17,8 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/projects")
+//@RequestMapping("/api/projects")
+@RequestMapping("/api/v1/workspace/projects")
 @FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
 public class ProjectController {
 
@@ -29,7 +30,7 @@ public class ProjectController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ProjectResponse> getMyProjectById(@PathVariable("id") Long projectId){
+    public ResponseEntity<ProjectSummaryResponse> getMyProjectById(@PathVariable("id") Long projectId){
         return ResponseEntity.ok(projectService.getUserProjectById(projectId));
     }
 

@@ -1,5 +1,6 @@
 package com.projects.resolver.service.Impl;
 
+import com.projects.resolver.dto.chat.StreamResponse;
 import com.projects.resolver.entity.*;
 import com.projects.resolver.enums.ChatEventType;
 import com.projects.resolver.enums.MessageRole;
@@ -47,7 +48,7 @@ public class AiGenerationServiceImpl implements AiGenerationService {
 
     @Override
     @PreAuthorize("@security.canEditProject(#projectId)")
-    public Flux<String> streamResponse(String userMessage, Long projectId) {
+    public Flux<StreamResponse> streamResponse(String userMessage, Long projectId) {
         Long userId = authUtil.getCurrentUserId();
         ChatSession chatSession = createChatSessionIfNotExists(projectId, userId);
         // passing advisor to LLM
@@ -93,7 +94,10 @@ public class AiGenerationServiceImpl implements AiGenerationService {
 
                 })
                 .doOnError(error-> log.error("Error during streaming for project", projectId))
-                .map(chatResponse -> Objects.requireNonNull(chatResponse.getResult().getOutput().getText()));
+                .map(chatResponse -> {
+                    String text = chatResponse.getResult().getOutput().getText();
+                    return new StreamResponse(text!=null?text:"");
+                });
     }
 
     private void finalizeChats(String userMessage, ChatSession chatSession, String fullText, Long duration){

@@ -2,6 +2,7 @@ package com.projects.resolver.service.Impl;
 
 import com.projects.resolver.dto.Project.FileContentResponse;
 import com.projects.resolver.dto.Project.FileNode;
+import com.projects.resolver.dto.Project.FileTreeResponse;
 import com.projects.resolver.entity.Project;
 import com.projects.resolver.entity.ProjectFile;
 import com.projects.resolver.exceptions.ResourceNotFoundException;
@@ -40,9 +41,10 @@ public class ProjectFileServiceImpl implements ProjectFileService {
     private static final String BUCKET_NAME = "projects";
 
     @Override
-    public List<FileNode> getFileTree(Long projectId) {
+    public FileTreeResponse getFileTree(Long projectId) {
         List<ProjectFile> projectFileList = projectFileRepository.findByProjectId(projectId);
-        return projectFileMapper.toListOfFileNode(projectFileList);
+        List<FileNode> projectFileNodes = projectFileMapper.toListOfFileNode(projectFileList);
+        return new FileTreeResponse(projectFileNodes);
     }
 
     @Override

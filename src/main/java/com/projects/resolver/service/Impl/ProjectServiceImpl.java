@@ -45,18 +45,19 @@ public class ProjectServiceImpl implements ProjectService {
     @Override
     public List<ProjectSummaryResponse> getUserProjects() {
         Long userId = authUtil.getCurrentUserId();
-        List<Project> projectList = projectRepository.findAllAccesibleByUser(userId);
-        return projectMapper.toProjectSummaryResponses(projectList);
+        var projectWithRole = projectRepository.findAllAccesibleByUser(userId);
+        return projectWithRole.stream()
+                .map(p->projectMapper.toProjectSummaryResponse(p.getProject(),p.getRole()))
+                .toList();
     }
 
     @Override
     @PreAuthorize("@security.canViewProject(#projectId)")
-    public ProjectResponse getUserProjectById(Long projectId) {
+    public ProjectSummaryResponse getUserProjectById(Long projectId) {
         Long userId = authUtil.getCurrentUserId();
-        Project project = projectRepository.findAccessibleProjectById(userId, projectId).orElseThrow(
-                ()->new ResourceNotFoundException("Project owner not exist",projectId.toString())
-        );
-        return projectMapper.toProjectResponse(project);
+        var projectWithRole = projectRepository.findAccessibleProjectByIdWithRole(userId,projectId)
+                .orElseThrow(()-> new BadRequestException("Project Not Found"));
+        return projectMapper.toProjectSummaryResponse(projectWithRole.getProject(),projectWithRole.getRole());
     }
 
     @Override
