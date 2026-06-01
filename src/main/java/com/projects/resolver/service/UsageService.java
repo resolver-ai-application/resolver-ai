@@ -5,7 +5,8 @@ import com.projects.resolver.dto.Subscription.UsageTodayResponse;
 import org.jspecify.annotations.Nullable;
 
 public interface UsageService {
-    UsageTodayResponse getTodayUsageOfUser(Long userId);
 
-    PlanLimitsResponse getCurrentSubscriptionLimitsOfUser(Long userId);
+    void recordTokenUsage(Long userId, int actualTokens);
+
+    void checkDailyTokensUsage();
 }

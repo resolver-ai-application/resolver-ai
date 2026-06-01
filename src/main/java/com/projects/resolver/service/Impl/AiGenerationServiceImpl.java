@@ -13,9 +13,12 @@ import com.projects.resolver.repositories.*;
 import com.projects.resolver.security.AuthUtil;
 import com.projects.resolver.service.AiGenerationService;
 import com.projects.resolver.service.ProjectFileService;
+import com.projects.resolver.service.UsageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.chat.metadata.Usage;
+import org.springframework.ai.openai.api.OpenAiApi;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
@@ -43,12 +46,14 @@ public class AiGenerationServiceImpl implements AiGenerationService {
     private final ProjectRepository projectRepository;
     private final ChatMessageRepository chatMessageRepository;
     private final ChatEventRepository chatEventRepository;
+    private final UsageService usageService;
 
     private static final Pattern FILE_TAG_PATTERN = Pattern.compile("<file path=\"([^\"]+)\">(.*?)</file>",Pattern.DOTALL);
 
     @Override
     @PreAuthorize("@security.canEditProject(#projectId)")
     public Flux<StreamResponse> streamResponse(String userMessage, Long projectId) {
+        usageService.checkDailyTokensUsage();
         Long userId = authUtil.getCurrentUserId();
         ChatSession chatSession = createChatSessionIfNotExists(projectId, userId);
         // passing advisor to LLM
@@ -62,6 +67,7 @@ public class AiGenerationServiceImpl implements AiGenerationService {
 
         AtomicReference<Long> startTime = new AtomicReference<>(System.currentTimeMillis());
         AtomicReference<Long> endTime = new AtomicReference<>(0L);
+        AtomicReference<Usage> usageRef = new AtomicReference<>();
 
         return chatClient.prompt()
                 .system(PromptUtils.CODE_GENERATION_SYSTEM_PROMPT)
@@ -79,17 +85,23 @@ public class AiGenerationServiceImpl implements AiGenerationService {
                 .doOnNext(chatResponse -> {
                         // buffer responses are combined
                         String content = chatResponse.getResult().getOutput().getText();
+                        //thinking time calc
                         if(content!=null && !content.isEmpty() && endTime.get()==0){
                             endTime.set(System.currentTimeMillis());
                         }
+                        //token usage
+                        if(chatResponse.getMetadata().getUsage()!=null){
+                            usageRef.set(chatResponse.getMetadata().getUsage());
+                        }
                         fullResponseBuffer.append(content);
+
                 })
                 .doOnComplete(()->{
                     // async updating to reduce load on current thread
                     Schedulers.boundedElastic().schedule(()->{
 //                        parseAndSaveFiles(fullResponseBuffer.toString(), projectId);
                         long duration = (endTime.get()-startTime.get())/1000;
-                        finalizeChats(userMessage,chatSession, fullResponseBuffer.toString(), duration);
+                        finalizeChats(userMessage,chatSession, fullResponseBuffer.toString(), duration, usageRef.get());
                     });
 
                 })
@@ -100,18 +112,26 @@ public class AiGenerationServiceImpl implements AiGenerationService {
                 });
     }
 
-    private void finalizeChats(String userMessage, ChatSession chatSession, String fullText, Long duration){
+    private void finalizeChats(String userMessage, ChatSession chatSession, String fullText, Long duration, Usage usage){
         Long projectId = chatSession.getProject().getId();
+
+        if(usage!=null){
+            int totalTokens = usage.getTotalTokens();
+            usageService.recordTokenUsage(chatSession.getUser().getId(), totalTokens);
+        }
+
         //save user message
         chatMessageRepository.save(
                 ChatMessage.builder()
                         .chatSession(chatSession)
                         .role(MessageRole.USER)
                         .content(userMessage)
+                        .tokenUsed(usage.getPromptTokens())
                         .build());
         ChatMessage assistantChatMessage = ChatMessage.builder()
                 .role(MessageRole.ASSISTANT)
                 .chatSession(chatSession)
+                .tokenUsed(usage.getCompletionTokens())
                 .content("Assistant messages here...")
                 .build();
         assistantChatMessage = chatMessageRepository.save(assistantChatMessage);

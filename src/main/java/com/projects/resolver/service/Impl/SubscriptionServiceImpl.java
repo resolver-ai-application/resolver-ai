@@ -38,6 +38,7 @@ public class SubscriptionServiceImpl implements SubscriptionService {
     UserRepository userRepository;
     PlanRepository planRepository;
     ProjectMemberRepository projectMemberRepository;
+    // todo update it later
     Integer FREE_TIER_PROJECTS_ALLOWED=100;
 
 
