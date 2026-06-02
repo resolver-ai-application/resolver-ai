@@ -21,6 +21,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+/**
+ *
+ * allMessages stores system prompt + fileTree + userPrompt
+ *
+ */
 @Component
 @Slf4j
 @RequiredArgsConstructor

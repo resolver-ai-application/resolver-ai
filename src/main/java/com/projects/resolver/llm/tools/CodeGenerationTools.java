@@ -16,6 +16,7 @@ public class CodeGenerationTools {
     private final ProjectFileService projectFileService;
     private final Long projectId;
 
+    //todo: Modify description add-> restriction to LLM to not read same file again
     @Tool(name = "read_files",
             description = "Read the content of files. Only input the file names present inside the FILE_TREE. DO NOT input any path which is not present under the FILE_TREE.")
     public List<String> readFiles(

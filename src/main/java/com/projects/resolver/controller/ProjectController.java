@@ -3,7 +3,9 @@ package com.projects.resolver.controller;
 import com.projects.resolver.dto.Project.ProjectRequest;
 import com.projects.resolver.dto.Project.ProjectResponse;
 import com.projects.resolver.dto.Project.ProjectSummaryResponse;
+import com.projects.resolver.dto.deploy.DeployResponse;
 import com.projects.resolver.security.AuthUtil;
+import com.projects.resolver.service.DeploymentService;
 import com.projects.resolver.service.ProjectService;
 import jakarta.validation.Valid;
 import lombok.AccessLevel;
@@ -23,6 +25,7 @@ import java.util.List;
 public class ProjectController {
 
     ProjectService projectService;
+    DeploymentService deploymentService;
 
     @GetMapping()
     public ResponseEntity<List<ProjectSummaryResponse>> getMyProjects(){
@@ -48,5 +51,10 @@ public class ProjectController {
     public ResponseEntity<ProjectResponse> deleteProject(@PathVariable("id") Long projectId){
         projectService.softProject(projectId);
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/{id}/deploy")
+    public ResponseEntity<DeployResponse> deployProject(@PathVariable Long id){
+        return ResponseEntity.ok(deploymentService.deploy(id));
     }
 }
