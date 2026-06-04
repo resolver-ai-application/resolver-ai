@@ -26,7 +26,7 @@ public class UsageServiceImpl implements UsageService {
     @Override
     public void recordTokenUsage(Long userId, int actualTokens) {
         LocalDate today = LocalDate.now();
-        UsageLog todayLog = usageLogRepository.findUserIdAndDate(userId,today)
+        UsageLog todayLog = usageLogRepository.findByUserIdAndDate(userId,today)
                 .orElseGet(()->createNewDailyLog(userId,today));
         todayLog.setTokensUsed(actualTokens + todayLog.getTokensUsed());
         usageLogRepository.save(todayLog);
@@ -41,7 +41,7 @@ public class UsageServiceImpl implements UsageService {
         if(plan==null) return;
 
         LocalDate today = LocalDate.now();
-        UsageLog todayLog = usageLogRepository.findUserIdAndDate(userId,today).orElseGet(()->createNewDailyLog(userId,today));
+        UsageLog todayLog = usageLogRepository.findByUserIdAndDate(userId,today).orElseGet(()->createNewDailyLog(userId,today));
 
         if(plan.unlimitedAI()) return;
 

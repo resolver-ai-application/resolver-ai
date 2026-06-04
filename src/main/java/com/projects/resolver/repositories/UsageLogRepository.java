@@ -10,5 +10,5 @@ import java.util.Optional;
 @Repository
 public interface UsageLogRepository extends JpaRepository<UsageLog,Long> {
 
-    Optional<UsageLog> findUserIdAndDate(Long userId, LocalDate today);
+    Optional<UsageLog> findByUserIdAndDate(Long userId, LocalDate today);
 }
