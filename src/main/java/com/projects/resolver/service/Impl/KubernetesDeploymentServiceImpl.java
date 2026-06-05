@@ -8,6 +8,7 @@ import io.fabric8.kubernetes.client.dsl.ExecListener;
 import io.fabric8.kubernetes.client.dsl.ExecWatch;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayOutputStream;
@@ -20,6 +21,7 @@ import java.util.concurrent.TimeUnit;
 public class KubernetesDeploymentServiceImpl implements DeploymentService {
     
     private final KubernetesClient kubernetesClient;
+    private final StringRedisTemplate stringRedisTemplate;
     
     private static final String NAMESPACE = "resolver-apps";
     private static final String POOL_LABEL = "status";
@@ -32,9 +34,10 @@ public class KubernetesDeploymentServiceImpl implements DeploymentService {
 
     @Override
     public DeployResponse deploy(Long projectId) {
-        String domain = "project-"+projectId+".app.domain.com";
+        String domain = "project-"+projectId+".app.resolver-ai.com";
         Pod existingPod = findActivePod(projectId);
         if(existingPod!=null){
+            registerRoute(domain,existingPod);
             return new DeployResponse("http://" + domain + ":8090");
         }
         return claimAndStartNewPod(projectId, domain);
@@ -76,6 +79,7 @@ public class KubernetesDeploymentServiceImpl implements DeploymentService {
 
             log.info("Starting dev server for project {}...", projectId);
             execCommand(podName, RUNNER_CONTAINER, "sh", "-c", startCmd);
+            registerRoute(domain,pod);
 
             log.info("Deployment successful: http://{}:{}", domain, REVERSE_PROXY_PORT);
             return new DeployResponse("http://" + domain + ":" + REVERSE_PROXY_PORT);
@@ -84,6 +88,14 @@ public class KubernetesDeploymentServiceImpl implements DeploymentService {
             kubernetesClient.pods().inNamespace(NAMESPACE).delete();
             throw new RuntimeException("Failed to deploy project with Id: " + projectId);
         }
+    }
+
+
+    private void registerRoute(String domain, Pod pod) {
+        String podIp = pod.getStatus().getPodIP();
+        if (podIp == null) throw new RuntimeException("Pod is running but has no IP!");
+
+        stringRedisTemplate.opsForValue().set("route:" + domain, podIp + ":5173", 6, TimeUnit.HOURS);
     }
 
     private void execCommand(String podName, String container, String... command) {
